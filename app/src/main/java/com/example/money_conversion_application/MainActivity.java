@@ -12,7 +12,8 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.io.*;
+import java.io.IOException;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import retrofit2.Call;
@@ -92,26 +93,17 @@ public class MainActivity extends AppCompatActivity implements ICurrencyLayer{
 //    public static final String API_URL = "https://api.apilayer.com/currency_data/convert";
 //    public static final String API_KEY = "BxWlwFUUB5gndcZW7jWst2gpkXbiYYGn";
 
-//    public static double convertCurrency1(double amount, String fromCurrency, String toCurrency){
-//        OkHttpClient client = new OkHttpClient();
+//    public static String convertCurrency1(String toCurrency, String fromCurrency , double amount) throws IOException {
+//        OkHttpClient client = new OkHttpClient().newBuilder().build();
 //        Request request = new Request.Builder()
 //                .url(API_URL + "?to=" + toCurrency + "&from=" + fromCurrency + "&amount=" + amount)
 //                .addHeader("apikey", API_KEY)
 //                .method("GET", null)
 //                .build();
-//        try {
-//            Response response = client.newCall(request).execute();
-//            if(response.isSuccessful()){
-//                String result = response.body().string();
-//                // code to parse the response and return the converted value
-//                return Double.parseDouble(result);
-//            } else {
-//                return 0;
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            return 0;
-//        }
+//        okhttp3.Response response = client.newCall(request).execute();
+//        String result = response.body().toString();
+//        // code to parse the response and return the converted value
+//        return result;
 //    }
     public static final String API_URL = "https://api.apilayer.com/currency_data/convert/";
     public static final String API_KEY = "Copy your API key here";
