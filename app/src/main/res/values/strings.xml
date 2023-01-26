@@ -2,7 +2,7 @@
     <string name="app_name">money-conversion-application</string>
     <string name="money">Enter money to convert in TND</string>
     <string name="convert_to_dollars">Convert to USD</string>
-    <string name="convert_to_euros">Convert to EURO</string>
+    <string name="convert_to_euros">Convert to EUR</string>
     <string name="convert">Convert</string>
     <string name="result">Result</string>
 </resources>
