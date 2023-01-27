@@ -13,19 +13,13 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
-import retrofit2.http.Headers;
-import retrofit2.http.Query;
+import okhttp3.Response;
 
-public class MainActivity extends AppCompatActivity implements ICurrencyLayer{
+public class MainActivity extends AppCompatActivity {
     EditText editText;
     RadioGroup radioGroup;
     Button convertButton;
@@ -59,19 +53,25 @@ public class MainActivity extends AppCompatActivity implements ICurrencyLayer{
                     alertDialog.show();
                 } else {
                     double initValue = 0.0;
-                    Call<String> res;
+                    String res;
 
                     initValue = Float.valueOf(editText.getText().toString());
 
                     switch (radioGroup.getCheckedRadioButtonId()) {
                         case R.id.ConvertToDollarsRadioButton:
-                            //res = tndToUsd(initValue);
-                            res = convertCurrency("USD", "TND", initValue);
+                            try {
+                                res = convertCurrency("USD", "TND", initValue);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                             resultTextView.setText(String.valueOf(res));
                             break;
                         case R.id.ConvertToEurosRadioButton:
-                            //res = tndToEur(initValue);
-                            res = convertCurrency("EUR", "TND", initValue);
+                            try {
+                                res = convertCurrency("EUR", "TND", initValue);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                             resultTextView.setText(String.valueOf(res));
                             break;
                         default:
@@ -82,60 +82,18 @@ public class MainActivity extends AppCompatActivity implements ICurrencyLayer{
         }));
     }
 
-    public float tndToUsd(float vTND) {
-        return (float)(vTND / 3.09f);
-    }
+    public String convertCurrency(String toCurrency, String fromCurrency, double amount) throws IOException {
+        OkHttpClient client = new OkHttpClient().newBuilder().build();
 
-    public float tndToEur(float vTND) {
-        return (float)(vTND / 3.37f);
-    }
-
-//    public static final String API_URL = "https://api.apilayer.com/currency_data/convert";
-//    public static final String API_KEY = "BxWlwFUUB5gndcZW7jWst2gpkXbiYYGn";
-
-//    public static String convertCurrency1(String toCurrency, String fromCurrency , double amount) throws IOException {
-//        OkHttpClient client = new OkHttpClient().newBuilder().build();
-//        Request request = new Request.Builder()
-//                .url(API_URL + "?to=" + toCurrency + "&from=" + fromCurrency + "&amount=" + amount)
-//                .addHeader("apikey", API_KEY)
-//                .method("GET", null)
-//                .build();
-//        okhttp3.Response response = client.newCall(request).execute();
-//        String result = response.body().toString();
-//        // code to parse the response and return the converted value
-//        return result;
-//    }
-    public static final String API_URL = "https://api.apilayer.com/currency_data/convert/";
-    public static final String API_KEY = "Copy your API key here";
-
-    @Headers("apikey: " + API_KEY)
-    @GET(API_URL)
-    @Override
-    public Call<String> convertCurrency(@Query("to") String toCurrency, @Query("from") String fromCurrency, @Query("amount") double amount) {
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(API_URL)
-                .addConverterFactory(GsonConverterFactory.create())
+        Request request = new Request.Builder()
+                .url("https://api.apilayer.com/exchangerates_data/convert?to=" + toCurrency + "&from= " + fromCurrency +"&amount= " + amount)
+                .addHeader("apikey", "BxWlwFUUB5gndcZW7jWst2gpkXbiYYGn")
+                .method("GET", null)
                 .build();
-        ICurrencyLayer currencyLayer = retrofit.create(ICurrencyLayer.class);
 
-        Call<String> res = currencyLayer.convertCurrency(toCurrency, fromCurrency, amount);
-        res.enqueue(new Callback<String>() {
-            @Override
-            public void onResponse(Call<String> call, Response<String> response) {
-                if (response.isSuccessful()) {
-                    String result = response.body();
-                    // code to parse the response and return the converted value
-                    resultTextView.setText(result);
-                } else {
-                    resultTextView.setText("0");
-                }
-            }
+        Response response = client.newCall(request).execute();
 
-            @Override
-            public void onFailure(Call<String> call, Throwable t) {
-                resultTextView.setText("0");
-            }
-        });
-        return res;
+        System.out.println(Objects.requireNonNull(response.body()).string());
+        return Objects.requireNonNull(response.body()).string();
     }
 }
