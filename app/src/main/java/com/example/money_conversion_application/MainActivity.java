@@ -12,12 +12,19 @@ import android.widget.EditText;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import java.io.IOException;
-import java.util.Objects;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     EditText editText;
@@ -60,7 +67,11 @@ public class MainActivity extends AppCompatActivity {
                     switch (radioGroup.getCheckedRadioButtonId()) {
                         case R.id.ConvertToDollarsRadioButton:
                             try {
-                                res = convertCurrency("USD", "TND", initValue);
+                                try {
+                                    res = convertCurrency("USD", "TND", initValue);
+                                } catch (ParseException e) {
+                                    throw new RuntimeException(e);
+                                }
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -69,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
                         case R.id.ConvertToEurosRadioButton:
                             try {
                                 res = convertCurrency("EUR", "TND", initValue);
-                            } catch (IOException e) {
+                            } catch (IOException | ParseException e) {
                                 throw new RuntimeException(e);
                             }
                             resultTextView.setText(String.valueOf(res));
@@ -82,18 +93,19 @@ public class MainActivity extends AppCompatActivity {
         }));
     }
 
-    public String convertCurrency(String toCurrency, String fromCurrency, double amount) throws IOException {
-        OkHttpClient client = new OkHttpClient().newBuilder().build();
+    public String convertCurrency(String toCurrency, String fromCurrency, double amount) throws IOException, ParseException {
+        String url_str = "https://api.exchangerate.host/convert?from= " + fromCurrency + " &to= " + toCurrency + " &amount= " + amount;
 
-        Request request = new Request.Builder()
-                .url("https://api.apilayer.com/exchangerates_data/convert?to=" + toCurrency + "&from= " + fromCurrency +"&amount= " + amount)
-                .addHeader("apikey", "BxWlwFUUB5gndcZW7jWst2gpkXbiYYGn")
-                .method("GET", null)
-                .build();
+        URL url = new URL(url_str);
+        HttpURLConnection request = (HttpURLConnection) url.openConnection();
+        request.connect();
 
-        Response response = client.newCall(request).execute();
+        JsonParser jp = new JsonParser();
+        JsonElement root = jp.parse(new InputStreamReader((InputStream) request.getContent()));
+        JsonObject jsonobj = root.getAsJsonObject();
 
-        System.out.println(Objects.requireNonNull(response.body()).string());
-        return Objects.requireNonNull(response.body()).string();
+        String req_result = jsonobj.get("result").getAsString();
+        System.out.println(req_result);
+        return req_result;
     }
 }
